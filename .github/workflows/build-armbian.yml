@@ -178,7 +178,7 @@ jobs:
         if: ${{ steps.down_armbian.outputs.status }} == 'success' && !cancelled()
         run: |
           # Compile method and parameter description: https://docs.armbian.com/Developer-Guide_Build-Options
-          echo "build_tag=Armbian_nanopct4_${{ inputs.set_release }}" >> ${GITHUB_OUTPUT}
+          echo "build_tag=Armbian_D3588_${{ inputs.set_release }}" >> ${GITHUB_OUTPUT}
           ./compile.sh RELEASE=${{ inputs.set_release }} BOARD=nanopct6 BRANCH=current BUILD_MINIMAL=no \
                        BUILD_ONLY=default HOST=armbian BUILD_DESKTOP=no EXPERT=yes KERNEL_CONFIGURE=no \
                        COMPRESS_OUTPUTIMAGE="sha,img,xz" SHARE_LOG=yes

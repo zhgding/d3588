@@ -161,6 +161,7 @@ jobs:
           ls -alh
           du -sh *
           ./build.sh
+          ls -alh rockdev
           echo "build_tag=D3588_UBOOT_KERNEL" >> ${GITHUB_OUTPUT}
           echo "status=success" >> ${GITHUB_OUTPUT}
 
