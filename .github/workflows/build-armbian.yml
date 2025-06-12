@@ -144,27 +144,45 @@ jobs:
           sudo chown -R runner.runner /builder
           df -Th
 
-      - name: Download source code
-        id: down
-        working-directory: /builder
+      - name: Download D3588 kernel and uboot code
+        id: down_d3588
+        working-directory: /builder/
         if: ${{ steps.init.outputs.status }} == 'success' && !cancelled()
         run: |
           df -hT ${PWD}
-          git clone -q --single-branch --depth=1 --branch=main https://github.com/armbian/build.git build
+          git clone -q --single-branch --depth=1 --branch=main https://github.com/yifengyou/d3588.git d3588.git
+          echo "status=success" >> ${GITHUB_OUTPUT}
+
+      - name: Compile D3588 kernel and uboot code
+        id: compile_d3588
+        working-directory: /builder/d3588.git
+        if: ${{ steps.down_d3588.outputs.status }} == 'success' && !cancelled()
+        run: |
+          ls -alh
+          du -sh *
+          ./build.sh
+          echo "status=success" >> ${GITHUB_OUTPUT}
+
+      - name: Download armbian source code
+        id: down_armbian
+        working-directory: /builder/
+        if: ${{ steps.compile_d3588.outputs.status }} == 'success' && !cancelled()
+        run: |
+          df -hT ${PWD}
+          git clone -q --single-branch --depth=1 --branch=main https://github.com/armbian/build.git armbian.git
           echo "status=success" >> ${GITHUB_OUTPUT}
 
       - name: Compile Armbian [ ${{ inputs.set_release }} ]
         id: compile
-        working-directory: /builder
-        if: ${{ steps.down.outputs.status }} == 'success' && !cancelled()
+        working-directory: /builder/armbian.git
+        if: ${{ steps.down_armbian.outputs.status }} == 'success' && !cancelled()
         run: |
           # Compile method and parameter description: https://docs.armbian.com/Developer-Guide_Build-Options
           echo "build_tag=Armbian_nanopct4_${{ inputs.set_release }}" >> ${GITHUB_OUTPUT}
-          cd build/
-              ./compile.sh RELEASE=${{ inputs.set_release }} BOARD=nanopct6 BRANCH=current BUILD_MINIMAL=no \
-                           BUILD_ONLY=default HOST=armbian BUILD_DESKTOP=no EXPERT=yes KERNEL_CONFIGURE=no \
-                           COMPRESS_OUTPUTIMAGE="sha,img,xz" SHARE_LOG=yes
-          ls -alh /builder/build/output/images/
+          ./compile.sh RELEASE=${{ inputs.set_release }} BOARD=nanopct6 BRANCH=current BUILD_MINIMAL=no \
+                       BUILD_ONLY=default HOST=armbian BUILD_DESKTOP=no EXPERT=yes KERNEL_CONFIGURE=no \
+                       COMPRESS_OUTPUTIMAGE="sha,img,xz" SHARE_LOG=yes
+          ls -alh /builder/armbian.git/output/images/
           echo "status=success" >> ${GITHUB_OUTPUT}
 
 
