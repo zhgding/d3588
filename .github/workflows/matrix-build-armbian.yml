@@ -17,18 +17,53 @@ jobs:
   build:
     # using ubuntu 22.04 virtual machine environment
     runs-on: ubuntu-22.04
-    strategy:
+strategy:
+      fail-fast: false
       matrix:
-        set_release: [ bookworm, bullseye, jammy, noble ]
+        # 基础矩阵：发行版列表
+        release: [bookworm, bullseye, jammy, noble]
+        # 通过 include 精细控制每个发行版的桌面选项
         include:
-          - set_release: bookworm
-            distro_type: debian
-          - set_release: bullseye
-            distro_type: debian
-          - set_release: jammy
-            distro_type: ubuntu
-          - set_release: noble
-            distro_type: ubuntu
+          # Debian 系 bookworm 支持 GNOME/XFCE/无
+          - release: bookworm
+            desktop: "no"
+            desktop_env: ""
+          - release: bookworm
+            desktop: "yes"
+            desktop_env: "gnome"
+          - release: bookworm
+            desktop: "yes"
+            desktop_env: "xfce"
+          # Debian 系 bullseye 支持 GNOME/XFCE/无
+          - release: bullseye
+            desktop: "no"
+            desktop_env: ""
+          - release: bullseye
+            desktop: "yes"
+            desktop_env: "gnome"
+          - release: bullseye
+            desktop: "yes"
+            desktop_env: "xfce"
+          # Ubuntu 系 jammy 支持 GNOME/XFCE/无
+          - release: jammy
+            desktop: "no"
+            desktop_env: ""
+          - release: jammy
+            desktop: "yes"
+            desktop_env: "gnome"
+          - release: jammy
+            desktop: "yes"
+            desktop_env: "xfce"
+          # Ubuntu 系 noble支持 GNOME/XFCE/无
+          - release: noble
+            desktop: "no"
+            desktop_env: ""
+          - release: noble
+            desktop: "yes"
+            desktop_env: "gnome"
+          - release: noble
+            desktop: "yes"
+            desktop_env: "xfce"
 
     if: ${{ github.event.repository.owner.id }} == ${{ github.event.sender.id }}
     steps:
@@ -110,10 +145,21 @@ jobs:
         if: ${{ steps.down_armbian.outputs.status }} == 'success' && !cancelled()
         run: |
           # Compile method and parameter description: https://docs.armbian.com/Developer-Guide_Build-Options
-          echo "build_tag=Armbian_D3588_${{ matrix.set_release }}" >> ${GITHUB_OUTPUT}
-          ./compile.sh RELEASE=${{ matrix.release }} BOARD=nanopct6 BRANCH=current BUILD_MINIMAL=no \
-                       BUILD_ONLY=default HOST=armbian BUILD_DESKTOP=no EXPERT=yes KERNEL_CONFIGURE=no \
-                       COMPRESS_OUTPUTIMAGE="sha,img,xz" SHARE_LOG=yes
+          echo "build_tag=Armbian_D3588_${{ matrix.set_release }}_${{ matrix.desktop_env || 'cli' }}" >> ${GITHUB_OUTPUT}
+          ./compile.sh RELEASE=${{ matrix.release }} \
+                       BOARD=nanopct6 BRANCH=current BUILD_MINIMAL=no \
+                       BUILD_ONLY=default HOST=armbian \
+                       BUILD_DESKTOP=${{ matrix.desktop }} \
+                       ${{
+                             matrix.desktop == 'yes'   &&
+                             matrix.desktop_env != ''  &&
+                             'DESKTOP_ENVIRONMENT=' + matrix.desktop_env || ''
+                       }} \
+                       EXPERT=yes \
+                       KERNEL_CONFIGURE=no \
+                       COMPRESS_OUTPUTIMAGE="sha,img,xz" \
+                       VENDOR='kdev' \
+                       SHARE_LOG=yes
           ls -alh /builder/armbian.git/output/images/
           echo "status=success" >> ${GITHUB_OUTPUT}
 
