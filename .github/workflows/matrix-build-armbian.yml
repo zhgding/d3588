@@ -150,11 +150,7 @@ jobs:
                        BOARD=nanopct6 BRANCH=current BUILD_MINIMAL=no \
                        BUILD_ONLY=default HOST=armbian \
                        BUILD_DESKTOP=${{ matrix.desktop }} \
-                       ${{
-                             matrix.desktop == 'yes'   &&
-                             matrix.desktop_env != ''  &&
-                             'DESKTOP_ENVIRONMENT=' + matrix.desktop_env || ''
-                       }} \
+                       DESKTOP_ENVIRONMENT=${{ matrix.desktop_env || 'no' }} \
                        EXPERT=yes \
                        KERNEL_CONFIGURE=no \
                        COMPRESS_OUTPUTIMAGE="sha,img,xz" \
