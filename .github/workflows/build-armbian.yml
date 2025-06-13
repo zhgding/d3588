@@ -194,6 +194,8 @@ jobs:
         run: |
           cp -a /builder/armbian.git/output/images/* /builder/d3588.git/rockdev/
           ls -alh /builder/d3588.git/rockdev/
+          chmod +x ./d3588.git/extract-rootfs-from-armbian.sh
+          ./d3588.git/extract-rootfs-from-armbian.sh /builder/d3588.git/rockdev/
           echo "status=success" >> ${GITHUB_OUTPUT}
 
       - name: Upload D3588 image to Release
