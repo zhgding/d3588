@@ -17,11 +17,11 @@ jobs:
   build:
     # using ubuntu 22.04 virtual machine environment
     runs-on: ubuntu-22.04
-strategy:
+    strategy:
       fail-fast: false
       matrix:
         # 基础矩阵：发行版列表
-        release: [bookworm, bullseye, jammy, noble]
+        release: [ bookworm, bullseye, jammy, noble ]
         # 通过 include 精细控制每个发行版的桌面选项
         include:
           # Debian 系 bookworm 支持 GNOME/XFCE/无
