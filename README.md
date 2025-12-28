@@ -44,7 +44,7 @@ Bug report, questions and discussion are welcome, you can post an issue or pull 
 * [刷机指引](docs/刷机指引.md)
 * [maskrom救砖](docs/maskrom救砖.md)
 * [固件拆解](docs/固件拆解.md)
-* [亚克力外壳](docs/亚克力外壳.md)
+* [亚克力外壳（支持3个版本）](docs/亚克力外壳.md)
 
 
 
