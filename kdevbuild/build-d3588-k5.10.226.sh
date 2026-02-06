@@ -46,8 +46,11 @@ if [ -z "${set_desktop}" ] || [ -z "${set_release}" ]; then
 else
   mkdir -p ${WORKDIR}/rootfs
   wget -O ${WORKDIR}/rootfs/${ROOTFS} ${ROOTFS_URL}
-  rar x ${WORKDIR}/rootfs/${ROOTFS}
-  mv ${WORKDIR}/rootfs/rootfs.img ${WORKDIR}/rockdev/rootfs.img
+  cd ${WORKDIR}/rootfs/
+  ls -alh
+  rar x ${ROOTFS}
+  ls -alh
+  mv rootfs.img ${WORKDIR}/rockdev/rootfs.img
   ls -alh ${WORKDIR}/rockdev
 fi
 
