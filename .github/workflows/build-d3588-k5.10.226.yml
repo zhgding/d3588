@@ -173,10 +173,8 @@ jobs:
 
             2. 系统密码
 
-            - 用户名: root   密码: 1234
+            - 用户名: root   密码: admin
             - 用户名: admin  密码: admin
-            - 用户名: teamhd 密码: teamhd
-            - 用户名: linaro 密码: linaro
 
             3. rockdev镜像使用指引(文件后缀为rockdev.rar)
 

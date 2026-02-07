@@ -58,11 +58,26 @@ fi
 #                        build uboot                                       #
 #==========================================================================#
 cd ${WORKDIR}/
-git clone https://github.com/yifengyou/d3588-uboot.git d3588-uboot.git
-ls -alh d3588-uboot.git
-cd d3588-uboot.git
+# https://github.com/yifengyou/d3588-uboot.git fork from radxa/u-boot.git
+# git clone -b stable-5.10-rock5 https://github.com/yifengyou/d3588-uboot.git u-boot.git
+git clone -b stable-5.10-rock5 https://github.com/radxa/u-boot.git u-boot.git
+cd u-boot.git
+ls -alh
+
+# apply patch
+if ls "${WORKDIR}/radxa-uboot/"*.patch >/dev/null 2>&1; then
+  git config --global user.name yifengyou
+  git config --global user.email 842056007@qq.com
+  git am ${WORKDIR}/radxa-uboot/*.patch
+fi
+
+# build uboot.img
+chmod +x ${WORKDIR}/radxa-uboot/d3588.sh
+cp -a ${WORKDIR}/radxa-uboot/d3588.sh .
+cat d3588.sh
 ./d3588.sh
-cp -a uboot.img ${WORKDIR}/rockdev/uboot.img
+
+mv uboot.img ${WORKDIR}/rockdev/uboot.img
 ls -alh ${WORKDIR}/rockdev/uboot.img
 md5sum ${WORKDIR}/rockdev/uboot.img
 
