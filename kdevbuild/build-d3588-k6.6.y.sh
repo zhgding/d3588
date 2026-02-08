@@ -90,26 +90,40 @@ cd linux-6.6.y.git
 ls -alh
 
 # apply patch
-if ls "${BUILDER_DIR}/kernel-6.6.y/"*.patch >/dev/null 2>&1; then
+if ls "${WORKDIR}/kernel-6.6.y/"*.patch >/dev/null 2>&1; then
   git config --global user.name yifengyou
   git config --global user.email 842056007@qq.com
-  git am ${BUILDER_DIR}/kernel-6.6.y/*.patch
+  git am ${WORKDIR}/kernel-6.6.y/*.patch
 fi
-# config kernel
-if [ -f ${BUILDER_DIR}/kernel-6.6.y.y/config-6.6 ]; then
-  cp -a ${BUILDER_DIR}/kernel-6.6.y.y/config-6.6 .config
+
+if [ -d ${WORKDIR}/kernel-6.6.y ]; then
+  ls -alh ${WORKDIR}/kernel-6.6.y/
+  cp -a ${WORKDIR}/kernel-6.6.y/* .
+  ls -alh
 fi
 
 # build kernel Image
-chmod +x ${BUILDER_DIR}/kernel-6.6.y/build.sh
-cp ${BUILDER_DIR}/kernel-6.6.y/build.sh .
-./${BUILDER_DIR}/kernel-6.6.y/build.sh
+if [ -f build.sh ]; then
+  chmod +x build.sh
+  ./build.sh
+else
+  echo "no build.sh found!"
+  exit 1
+fi
 
 ls -alh arch/arm64/boot/Image
 md5sum arch/arm64/boot/Image
-
 ls -alh ./arch/arm64/boot/dts/rockchip/rk3588-liontron-d3588.dtb
 md5sum ./arch/arm64/boot/dts/rockchip/rk3588-liontron-d3588.dtb
+
+# update rootfs
+if [ -d kos/lib/modules ]; then
+  mount ${WORKDIR}/rockdev/rootfs.img /mnt
+  rm -rf /mnt/lib/modules/*
+  cp kos/lib/modules/* /mnt/lib/modules
+  umount /mnt
+  sync
+fi
 
 # generate boot.img
 dd if=/dev/zero of=boot.img bs=1M count=60
@@ -124,8 +138,8 @@ cp -f ./System.map /mnt/System.map-${KVER}
 touch /mnt/initrd.img-${KVER}
 
 mkdir -p /mnt/extlinux/
-cp -f ${BUILDER_DIR}/kernel-6.6.y/extlinux.conf /mnt/extlinux/
-cp -f ${BUILDER_DIR}/kernel-6.6.y/armbian_first_run.txt /mnt/
+cp -f ${WORKDIR}/kernel-6.6.y/extlinux.conf /mnt/extlinux/
+cp -f ${WORKDIR}/kernel-6.6.y/armbian_first_run.txt /mnt/
 
 find /mnt
 sync
