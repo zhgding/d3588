@@ -3,7 +3,7 @@
 set -euxo pipefail
 
 WORKDIR=$(pwd)
-export build_tag="D3588_k5.10.226_${set_release}_${set_desktop}"
+export build_tag="D3588_k6.6.y_${set_release}_${set_desktop}"
 export ROOTFS="armbian_${set_release}_${set_desktop}.rar"
 export ROOTFS_URL="https://github.com/yifengyou/kdev/releases/download/armbian-rootfs/${ROOTFS}"
 export DEBIAN_FRONTEND=noninteractive
@@ -85,10 +85,56 @@ md5sum ${WORKDIR}/rockdev/uboot.img
 #                        build kernel                                      #
 #==========================================================================#
 cd ${WORKDIR}
-git clone https://github.com/yifengyou/d3588-kernel-5.10.226.git d3588-kernel-5.10.226.git
-ls -alh d3588-kernel-5.10.226.git
-cd d3588-kernel-5.10.226.git
-./d3588.sh
+git clone https://github.com/ophub/linux-6.6.y.git linux-6.6.y.git
+cd linux-6.6.y.git
+ls -alh
+
+# apply patch
+if ls "${BUILDER_DIR}/kernel-6.6.y/"*.patch >/dev/null 2>&1; then
+  git config --global user.name yifengyou
+  git config --global user.email 842056007@qq.com
+  git am ${BUILDER_DIR}/kernel-6.6.y/*.patch
+fi
+# config kernel
+if [ -f ${BUILDER_DIR}/kernel-6.6.y.y/config-6.6 ]; then
+  cp -a ${BUILDER_DIR}/kernel-6.6.y.y/config-6.6 .config
+fi
+
+# build kernel Image
+chmod +x ${BUILDER_DIR}/kernel-6.6.y/build.sh
+cp ${BUILDER_DIR}/kernel-6.6.y/build.sh .
+./${BUILDER_DIR}/kernel-6.6.y/build.sh
+
+ls -alh arch/arm64/boot/Image
+md5sum arch/arm64/boot/Image
+
+ls -alh ./arch/arm64/boot/dts/rockchip/rk3588-liontron-d3588.dtb
+md5sum ./arch/arm64/boot/dts/rockchip/rk3588-liontron-d3588.dtb
+
+# generate boot.img
+dd if=/dev/zero of=boot.img bs=1M count=60
+mkfs.ext2 -U 7A3F0000-0000-446A-8000-702F00006273 -L kdevboot boot.img
+mount boot.img /mnt
+
+mkdir -p /mnt/dtb
+cp -a ./arch/arm64/boot/dts/rockchip/rk3588-liontron-d3588.dtb /mnt/dtb/
+cp -f ./arch/arm64/boot/Image /mnt/vmlinuz-${KVER}
+cp -f .config /mnt/config-${KVER}
+cp -f ./System.map /mnt/System.map-${KVER}
+touch /mnt/initrd.img-${KVER}
+
+mkdir -p /mnt/extlinux/
+cp -f ${BUILDER_DIR}/kernel-6.6.y/extlinux.conf /mnt/extlinux/
+cp -f ${BUILDER_DIR}/kernel-6.6.y/armbian_first_run.txt /mnt/
+
+find /mnt
+sync
+umount /mnt
+sync
+
+ls -alh boot.img
+md5sum boot.img
+
 cp -a boot.img ${WORKDIR}/rockdev/boot.img
 ls -alh ${WORKDIR}/rockdev/boot.img
 md5sum ${WORKDIR}/rockdev/boot.img

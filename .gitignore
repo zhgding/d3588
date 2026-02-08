@@ -5,3 +5,4 @@
 *.squashfs
 *.img
 *.git
+/rockdev
